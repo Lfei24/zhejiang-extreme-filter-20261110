@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>极值统计 - 条件筛选</title>
+  <style>
+    :root { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; color: #3e4a55; font-size: 14px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 360px; min-height: 100vh; overflow: hidden; background: #e9eef4; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { height: 80px; display: flex; align-items: center; gap: 28px; padding: 0 16px; color: #fff; background: linear-gradient(115deg, #0874b5, #0c8ed3 55%, #0875b7); }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 440px; font-size: 25px; font-weight: 700; white-space: nowrap; }
+    .brand-mark { width: 54px; height: 44px; border: 2px solid #c8e8f7; border-radius: 50%; display: grid; place-items: center; font-size: 12px; }
+    .main-nav { display: flex; align-items: center; justify-content: center; gap: clamp(14px, 2.2vw, 42px); flex: 1; white-space: nowrap; }
+    .main-nav span { height: 46px; display: grid; align-items: center; border-bottom: 2px solid transparent; color: #e8f6fe; }
+    .main-nav .selected { border-color: #fff; font-weight: 700; }
+    .user-area { white-space: nowrap; color: #eaf7ff; }
+    .controlbar { height: 90px; background: #fff; border-bottom: 3px solid #159be8; }
+    .tabs { height: 48px; display: flex; align-items: center; padding: 0 10px; }
+    .tabs button { height: 34px; padding: 0 18px; border: 1px solid #159be8; color: #148bd0; background: #fff; }
+    .tabs button:first-child { border-radius: 2px 0 0 2px; }
+    .tabs button:last-child { border-radius: 0 2px 2px 0; }
+    .tabs .selected { color: #fff; background: #159be8; }
+    .timebar { height: 39px; display: flex; align-items: center; gap: 5px; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .timebar strong { margin-right: 6px; color: #57636c; }
+    .timebar button { min-width: 58px; height: 30px; border: 1px solid #cbd8e2; color: #65727d; background: #fff; }
+    .timebar button.selected { border-color: #148fde; color: #fff; background: #148fde; }
+    .workspace { display: flex; height: calc(100vh - 170px); min-height: 440px; }
+    .sidebar { width: 300px; flex: 0 0 300px; overflow: auto; background: #fff; border-right: 1px solid #c9d5df; }
+    .group-title { height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 14px; border-bottom: 1px solid #159be8; color: #158fcf; font-weight: 700; }
+    .group-title .symbol { width: 18px; font-size: 17px; text-align: center; }
+    .side-item { height: 36px; display: flex; align-items: center; padding: 0 38px; color: #75818b; }
+    .side-item.active { color: #168ed0; background: #d8effd; }
+    .map-panel { position: relative; flex: 1; min-width: 0; overflow: hidden; background: #cfe2eb url("./assets/zhejiang-map.jpg") center / cover no-repeat; }
+    .map-views { position: absolute; top: 12px; left: 14px; display: flex; overflow: hidden; border: 1px solid #148bd0; border-radius: 20px; background: #fff; }
+    .map-views span { padding: 8px 15px; color: #158bd0; }
+    .map-views .selected { color: #fff; background: #148bd0; }
+    .map-tools { position: absolute; top: 12px; right: 16px; display: flex; gap: 8px; }
+    .map-tools button { min-height: 42px; padding: 0 12px; border: 1px solid #c6d6e2; color: #47677d; background: #fff; box-shadow: 0 1px 4px #31566b22; }
+    .map-tools .filter-trigger { border-color: #118bd1; color: #fff; background: #118bd1; }
+    .condition-count { display: inline-grid; width: 20px; height: 20px; margin-left: 5px; place-items: center; border-radius: 50%; color: #1185c9; background: #fff; font-size: 12px; }
+    .legend { position: absolute; right: 14px; bottom: 14px; max-width: calc(100% - 28px); display: flex; flex-wrap: wrap; gap: 7px 15px; align-items: center; padding: 9px 12px; color: #47677d; background: #ffffffdc; }
+    .legend i { width: 10px; height: 10px; margin-right: 5px; display: inline-block; border-radius: 50%; background: #155572; }
+    .legend span:nth-child(2) i { background: #d63737; }
+    .legend span:nth-child(3) i { background: #ee9b31; }
+    .veil { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 18px; background: #0007; }
+    .veil[hidden] { display: none; }
+    .dialog { width: min(650px, calc(100vw - 32px)); max-height: calc(100vh - 36px); display: flex; flex-direction: column; background: #fff; box-shadow: 0 12px 36px #112a3a42; }
+    .dialog-header { height: 50px; flex: 0 0 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; color: #fff; background: #149be8; }
+    .dialog-header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    .icon-button { width: 32px; height: 32px; border: 0; color: #fff; background: transparent; font-size: 22px; line-height: 1; }
+    .dialog-body { min-height: 0; overflow: auto; padding: 24px 28px 16px; }
+    .rules { display: grid; gap: 20px; margin-bottom: 24px; }
+    .rule-row { min-height: 42px; display: flex; align-items: center; gap: 8px; color: #58636c; line-height: 1.65; }
+    .rule-toggle { width: 16px; height: 16px; flex: 0 0 16px; margin: 0 2px 0 0; accent-color: #119ce9; }
+    .rule-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .number-input { width: 90px; height: 34px; padding: 0 9px; border: 1px solid #c8d5df; outline: none; color: #45535d; background: #fff; }
+    .number-input:focus, select:focus { border-color: #149be8; box-shadow: 0 0 0 2px #149be822; }
+    .number-input:disabled, select:disabled { color: #929da5; background: #f4f6f8; }
+    .number-input.invalid { border-color: #d74949; }
+    .metric-select { width: 94px; height: 34px; padding: 0 8px; border: 1px solid #c8d5df; color: #53616a; background: #fff; }
+    .error { min-height: 18px; margin: 6px 0 0 26px; color: #c63e3e; font-size: 12px; }
+    .error:empty { display: none; }
+    .station-section { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; align-items: start; }
+    .station-label { padding-top: 7px; color: #58636c; white-space: nowrap; }
+    .station-picker { min-width: 0; border: 1px solid #c7d5df; padding: 6px 6px 8px; }
+    .site-heading { min-height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .site-select { height: 32px; min-width: 150px; padding: 0 9px; border: 1px solid #d1dbe3; color: #77848d; background: #fff; }
+    .select-all { display: inline-flex; align-items: center; gap: 6px; color: #158fd1; }
+    .station-list { max-height: 220px; overflow: auto; padding: 0 6px 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; column-gap: 10px; row-gap: 12px; }
+    .station { min-width: 0; min-height: 20px; display: flex; align-items: center; gap: 5px; color: #168fd0; white-space: nowrap; }
+    .station input, .select-all input { width: 14px; height: 14px; margin: 0; accent-color: #109de9; }
+    .dialog-footer { min-height: 66px; flex: 0 0 66px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 30px; }
+    .dialog-footer button { width: 88px; height: 34px; border: 1px solid #159be8; color: #118cce; background: #fff; }
+    .dialog-footer .primary { color: #fff; background: #149be8; }
+    .status { position: fixed; z-index: 4; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 9px 16px; color: #fff; background: #31586dcc; opacity: 0; pointer-events: none; transition: opacity .18s; }
+    .status.visible { opacity: 1; }
+    @media (max-width: 900px) {
+      .topbar { gap: 14px; }
+      .brand { min-width: 0; font-size: 18px; }
+      .brand-mark { width: 40px; height: 36px; }
+      .main-nav { justify-content: flex-start; overflow: hidden; gap: 14px; }
+      .user-area { display: none; }
+      .sidebar { width: 220px; flex-basis: 220px; }
+      .map-tools button:not(.filter-trigger) { display: none; }
+      .dialog-body { padding: 16px 18px 12px; }
+    }
+    @media (max-width: 600px) {
+      body { overflow: auto; }
+      .topbar { height: 62px; }
+      .brand { font-size: 16px; }
+      .brand-mark { display: none; }
+      .main-nav span:nth-child(n+3) { display: none; }
+      .controlbar { height: 80px; }
+      .tabs { height: 42px; }
+      .timebar { height: 35px; }
+      .timebar button { min-width: 48px; }
+      .workspace { height: calc(100vh - 142px); min-height: 380px; }
+      .sidebar { width: 126px; flex-basis: 126px; }
+      .side-item { padding: 0 12px; font-size: 12px; }
+      .map-tools { top: 8px; right: 8px; }
+      .map-tools .filter-trigger { padding: 0 8px; }
+      .map-views { top: 8px; left: 8px; }
+      .map-views span { padding: 7px 9px; font-size: 12px; }
+      .dialog-header { height: 46px; flex-basis: 46px; }
+      .dialog-body { padding: 12px 14px; }
+      .rule-row { align-items: flex-start; }
+      .rule-toggle { margin-top: 7px; }
+      .station-section { grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
+      .station-label { font-size: 12px; }
+      .site-heading { gap: 8px; }
+      .site-select { width: 130px; min-width: 0; flex: 1; max-width: 150px; }
+      .station-list { max-height: min(190px, 26vh); grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 2px 2px; column-gap: 6px; row-gap: 10px; }
+      .station { font-size: 12px; }
+      .dialog-footer { min-height: 58px; flex-basis: 58px; padding: 0 14px; }
+      .legend { gap: 7px; right: 5px; bottom: 5px; padding: 6px; font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">浙气</span><span>极端气候事件监测评估系统</span></div>
+    <nav class="main-nav" aria-label="主导航"><span>可视化首页</span><span class="selected">极值统计</span><span>暴雨</span><span>高温</span><span>干旱</span><span>梅雨</span><span>台风</span><span>后台管理</span></nav>
+    <div class="user-area">◉ 管理员</div>
+  </header>
+  <section class="controlbar" aria-label="统计条件">
+    <div class="tabs"><button class="selected" type="button">实况评估</button><button type="button">历史统计</button></div>
+    <div class="timebar"><strong>时间选择：</strong><button class="selected" type="button">全年</button><button type="button">1月</button><button type="button">2月</button><button type="button">3月</button><button type="button">4月</button><button type="button">5月</button><button type="button">6月</button><button type="button">7月</button><button type="button">8月</button><button type="button">9月</button><button type="button">10月</button><button type="button">11月</button><button type="button">12月</button></div>
+  </section>
+  <main class="workspace">
+    <aside class="sidebar" aria-label="统计要素">
+      <div class="group-title"><span class="symbol">☂</span>降水</div>
+      <div class="side-item">1h整点降水</div><div class="side-item">3h整点滑动降水</div><div class="side-item">6h整点滑动降水</div><div class="side-item">12h整点滑动降水</div><div class="side-item">24h整点滑动降水</div><div class="side-item">日降水(08-08)</div><div class="side-item">日降水(20-20)</div><div class="side-item">3日累积降水量</div><div class="side-item">5日累积降水量</div>
+      <div class="group-title"><span class="symbol">♨</span>气温</div><div class="side-item">日最高气温</div><div class="side-item active">日最低气温</div>
+      <div class="group-title"><span class="symbol">⌁</span>风</div><div class="side-item">极大风速</div><div class="side-item">最大风速</div>
+    </aside>
+    <section class="map-panel" aria-label="统计地图">
+      <div class="map-views"><span class="selected">空间分布</span><span>统计图表</span></div>
+      <div class="map-tools"><button class="filter-trigger" id="open-filter" type="button">条件筛选 <span class="condition-count" id="condition-count">1</span></button><button type="button" aria-label="下载图片">⇩ 下载图片</button><button type="button" aria-label="地图复位">⟳ 地图复位</button></div>
+      <div class="legend"><span><i></i>监测站点</span><span><i></i>超历史极值站点</span><span><i></i>超历史同期极值站点</span></div>
+    </section>
+  </main>
+  <div class="veil" id="veil">
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <header class="dialog-header"><h1 id="dialog-title">条件筛选</h1><button class="icon-button" id="close-filter" type="button" aria-label="关闭">×</button></header>
+      <form id="filter-form" class="dialog-body" novalidate>
+        <div class="rules">
+          <div>
+            <div class="rule-row"><input class="rule-toggle" id="years-enabled" type="checkbox" checked aria-label="启用按有极值的年份筛选"><span class="rule-copy">按有极值的年份进行统计，筛选出 <span>≥</span><input class="number-input" id="years-threshold" type="number" min="1" step="1" value="2" aria-label="有极值的最少年份数"><span>年的站点进行统计</span></span></div>
+            <div class="error" id="years-error" aria-live="polite"></div>
+          </div>
+          <div class="rule-row"><input class="rule-toggle" id="legacy-enabled" type="checkbox" aria-label="启用原有数值筛选"><span class="rule-copy">当站点要素数值 <select class="metric-select" id="legacy-metric" aria-label="旧规则比较符"><option>None</option><option>&gt;</option><option>≥</option><option>=</option><option>≤</option><option>&lt;</option><option>≠</option></select><input class="number-input" id="legacy-value" type="number" step="any" placeholder="请输入数" aria-label="旧规则数值"><span>时，参与统计和出图</span></span></div>
+        </div>
+        <div class="station-section">
+          <strong class="station-label" id="station-label">出图站点：</strong>
+          <div class="station-picker" role="group" aria-labelledby="station-label">
+            <div class="site-heading"><select class="site-select" aria-label="站点范围"><option>请选择</option></select><label class="select-all"><input id="select-all" type="checkbox" checked>全选</label></div>
+            <div class="station-list" id="station-list" aria-label="出图站点列表"></div>
+          </div>
+        </div>
+      </form>
+      <footer class="dialog-footer"><button id="cancel-filter" type="button">取消</button><button class="primary" id="save-filter" type="button">确认</button></footer>
+    </section>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+  <script>
+    const stations = [
+      ["新昌", "58555"], ["奉化", "58565"], ["丽水", "58646"],
+      ["三门", "58568"], ["永嘉", "58658"], ["建德", "58544"],
+      ["义乌", "58557"], ["富阳", "58449"], ["云和", "58742"],
+      ["青田", "58657"], ["嵊州", "58556"], ["武义", "58642"],
+      ["诸暨", "58550"], ["兰溪", "58548"], ["柯桥", "58453"]
+    ];
+    let saved = { yearsEnabled: true, years: "2", legacyEnabled: false, legacyMetric: "None", legacyValue: "", selectedStations: stations.map((_, i) => i) };
+    const veil = document.getElementById("veil");
+    const yearsEnabled = document.getElementById("years-enabled");
+    const yearsThreshold = document.getElementById("years-threshold");
+    const yearsError = document.getElementById("years-error");
+    const legacyEnabled = document.getElementById("legacy-enabled");
+    const legacyMetric = document.getElementById("legacy-metric");
+    const legacyValue = document.getElementById("legacy-value");
+    const selectAll = document.getElementById("select-all");
+    const stationList = document.getElementById("station-list");
+    const status = document.getElementById("status");
+    let statusTimer;
+
+    stations.forEach(([name, code], index) => {
+      const label = document.createElement("label");
+      label.className = "station";
+      label.innerHTML = `<input type="checkbox" value="${index}" checked><span>${name}（${code}）</span>`;
+      stationList.append(label);
+    });
+
+    function syncControls() {
+      yearsThreshold.disabled = !yearsEnabled.checked;
+      legacyMetric.disabled = !legacyEnabled.checked;
+      legacyValue.disabled = !legacyEnabled.checked || legacyMetric.value === "None";
+    }
+
+    function openFilter() {
+      yearsEnabled.checked = saved.yearsEnabled;
+      yearsThreshold.value = saved.years;
+      legacyEnabled.checked = saved.legacyEnabled;
+      legacyMetric.value = saved.legacyMetric;
+      legacyValue.value = saved.legacyValue;
+      stationList.querySelectorAll("input").forEach((input, index) => input.checked = saved.selectedStations.includes(index));
+      updateSelectAll();
+      yearsError.textContent = "";
+      yearsThreshold.classList.remove("invalid");
+      syncControls();
+      veil.hidden = false;
+      document.getElementById("close-filter").focus();
+    }
+
+    function closeFilter() {
+      veil.hidden = true;
+      document.getElementById("open-filter").focus();
+    }
+
+    function updateSelectAll() {
+      const boxes = [...stationList.querySelectorAll("input")];
+      const selected = boxes.filter(input => input.checked).length;
+      selectAll.checked = selected === boxes.length;
+      selectAll.indeterminate = selected > 0 && selected < boxes.length;
+    }
+
+    function showStatus(message) {
+      status.textContent = message;
+      status.classList.add("visible");
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => status.classList.remove("visible"), 2200);
+    }
+
+    yearsEnabled.addEventListener("change", syncControls);
+    legacyEnabled.addEventListener("change", syncControls);
+    legacyMetric.addEventListener("change", syncControls);
+    yearsThreshold.addEventListener("input", () => {
+      yearsError.textContent = "";
+      yearsThreshold.classList.remove("invalid");
+    });
+    stationList.addEventListener("change", updateSelectAll);
+    selectAll.addEventListener("change", () => stationList.querySelectorAll("input").forEach(input => input.checked = selectAll.checked));
+    document.getElementById("open-filter").addEventListener("click", openFilter);
+    document.getElementById("close-filter").addEventListener("click", closeFilter);
+    document.getElementById("cancel-filter").addEventListener("click", closeFilter);
+    document.getElementById("save-filter").addEventListener("click", () => {
+      const years = Number(yearsThreshold.value);
+      if (yearsEnabled.checked && (!Number.isInteger(years) || years < 1)) {
+        yearsError.textContent = "请输入大于或等于 1 的整数年份。";
+        yearsThreshold.classList.add("invalid");
+        yearsThreshold.focus();
+        return;
+      }
+      if (legacyEnabled.checked && legacyMetric.value !== "None" && legacyValue.value === "") {
+        showStatus("请填写旧规则的比较数值。");
+        legacyValue.focus();
+        return;
+      }
+      saved = {
+        yearsEnabled: yearsEnabled.checked,
+        years: yearsThreshold.value,
+        legacyEnabled: legacyEnabled.checked,
+        legacyMetric: legacyMetric.value,
+        legacyValue: legacyValue.value,
+        selectedStations: [...stationList.querySelectorAll("input:checked")].map(input => Number(input.value))
+      };
+      const activeRules = Number(saved.yearsEnabled) + Number(saved.legacyEnabled && saved.legacyMetric !== "None");
+      document.getElementById("condition-count").textContent = activeRules;
+      closeFilter();
+      showStatus(`筛选条件已保存，启用 ${activeRules} 项规则。`);
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !veil.hidden) closeFilter();
+    });
+    syncControls();
+  </script>
+</body>
+</html>
