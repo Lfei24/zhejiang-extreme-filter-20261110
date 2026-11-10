@@ -54,7 +54,9 @@
     .dialog-body { min-height: 0; overflow: auto; padding: 24px 28px 16px; }
     .rules { display: grid; gap: 20px; margin-bottom: 24px; }
     .rule-row { min-height: 42px; display: flex; align-items: center; gap: 8px; color: #58636c; line-height: 1.65; }
+    .history-rule.inactive { color: #9aa2a8; }
     .rule-toggle { width: 16px; height: 16px; flex: 0 0 16px; margin: 0 2px 0 0; accent-color: #119ce9; }
+    .rule-toggle:disabled { opacity: .55; }
     .rule-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
     .number-input { width: 90px; height: 34px; padding: 0 9px; border: 1px solid #c8d5df; outline: none; color: #45535d; background: #fff; }
     .number-input:focus, select:focus { border-color: #149be8; box-shadow: 0 0 0 2px #149be822; }
@@ -126,7 +128,7 @@
     <div class="user-area">◉ 管理员</div>
   </header>
   <section class="controlbar" aria-label="统计条件">
-    <div class="tabs"><button class="selected" type="button">实况评估</button><button type="button">历史统计</button></div>
+    <div class="tabs"><button class="selected" type="button" data-mode="live" aria-pressed="true">实况评估</button><button type="button" data-mode="history" aria-pressed="false">历史统计</button></div>
     <div class="timebar"><strong>时间选择：</strong><button class="selected" type="button">全年</button><button type="button">1月</button><button type="button">2月</button><button type="button">3月</button><button type="button">4月</button><button type="button">5月</button><button type="button">6月</button><button type="button">7月</button><button type="button">8月</button><button type="button">9月</button><button type="button">10月</button><button type="button">11月</button><button type="button">12月</button></div>
   </section>
   <main class="workspace">
@@ -138,7 +140,7 @@
     </aside>
     <section class="map-panel" aria-label="统计地图">
       <div class="map-views"><span class="selected">空间分布</span><span>统计图表</span></div>
-      <div class="map-tools"><button class="filter-trigger" id="open-filter" type="button">条件筛选 <span class="condition-count" id="condition-count">1</span></button><button type="button" aria-label="下载图片">⇩ 下载图片</button><button type="button" aria-label="地图复位">⟳ 地图复位</button></div>
+      <div class="map-tools"><button class="filter-trigger" id="open-filter" type="button">条件筛选 <span class="condition-count" id="condition-count">0</span></button><button type="button" aria-label="下载图片">⇩ 下载图片</button><button type="button" aria-label="地图复位">⟳ 地图复位</button></div>
       <div class="legend"><span><i></i>监测站点</span><span><i></i>超历史极值站点</span><span><i></i>超历史同期极值站点</span></div>
     </section>
   </main>
@@ -148,7 +150,7 @@
       <form id="filter-form" class="dialog-body" novalidate>
         <div class="rules">
           <div>
-            <div class="rule-row"><input class="rule-toggle" id="years-enabled" type="checkbox" checked aria-label="启用按有极值的年份筛选"><span class="rule-copy">按有极值的年份进行统计，筛选出 <span>≥</span><input class="number-input" id="years-threshold" type="number" min="1" step="1" value="2" aria-label="有极值的最少年份数"><span>年的站点进行统计</span></span></div>
+            <div class="rule-row history-rule inactive" id="years-rule-row"><input class="rule-toggle" id="years-enabled" type="checkbox" checked aria-label="启用按有极值的年份筛选"><span class="rule-copy">按有极值的年份进行统计，站点历史序列年限 ≥ <input class="number-input" id="years-threshold" type="number" min="1" step="1" value="2" aria-label="站点历史序列最少年限"><span>年</span></span></div>
             <div class="error" id="years-error" aria-live="polite"></div>
           </div>
           <div class="rule-row"><input class="rule-toggle" id="legacy-enabled" type="checkbox" aria-label="启用原有数值筛选"><span class="rule-copy">当站点要素数值 <select class="metric-select" id="legacy-metric" aria-label="旧规则比较符"><option>None</option><option>&gt;</option><option>≥</option><option>=</option><option>≤</option><option>&lt;</option><option>≠</option></select><input class="number-input" id="legacy-value" type="number" step="any" placeholder="请输入数" aria-label="旧规则数值"><span>时，参与统计和出图</span></span></div>
@@ -184,6 +186,9 @@
     const selectAll = document.getElementById("select-all");
     const stationList = document.getElementById("station-list");
     const status = document.getElementById("status");
+    const yearRuleRow = document.getElementById("years-rule-row");
+    const modeTabs = [...document.querySelectorAll(".tabs button[data-mode]")];
+    let activeMode = "live";
     let statusTimer;
 
     stations.forEach(([name, code], index) => {
@@ -194,9 +199,29 @@
     });
 
     function syncControls() {
-      yearsThreshold.disabled = !yearsEnabled.checked;
+      const historyMode = activeMode === "history";
+      yearsEnabled.disabled = !historyMode;
+      yearsThreshold.disabled = !historyMode || !yearsEnabled.checked;
+      yearRuleRow.classList.toggle("inactive", !historyMode);
       legacyMetric.disabled = !legacyEnabled.checked;
       legacyValue.disabled = !legacyEnabled.checked || legacyMetric.value === "None";
+    }
+
+    function updateConditionCount() {
+      const activeRules = Number(activeMode === "history" && saved.yearsEnabled) + Number(saved.legacyEnabled && saved.legacyMetric !== "None");
+      document.getElementById("condition-count").textContent = activeRules;
+      return activeRules;
+    }
+
+    function setMode(mode) {
+      activeMode = mode;
+      modeTabs.forEach(tab => {
+        const selected = tab.dataset.mode === mode;
+        tab.classList.toggle("selected", selected);
+        tab.setAttribute("aria-pressed", String(selected));
+      });
+      syncControls();
+      updateConditionCount();
     }
 
     function openFilter() {
@@ -234,6 +259,7 @@
     }
 
     yearsEnabled.addEventListener("change", syncControls);
+    modeTabs.forEach(tab => tab.addEventListener("click", () => setMode(tab.dataset.mode)));
     legacyEnabled.addEventListener("change", syncControls);
     legacyMetric.addEventListener("change", syncControls);
     yearsThreshold.addEventListener("input", () => {
@@ -247,7 +273,7 @@
     document.getElementById("cancel-filter").addEventListener("click", closeFilter);
     document.getElementById("save-filter").addEventListener("click", () => {
       const years = Number(yearsThreshold.value);
-      if (yearsEnabled.checked && (!Number.isInteger(years) || years < 1)) {
+      if (activeMode === "history" && yearsEnabled.checked && (!Number.isInteger(years) || years < 1)) {
         yearsError.textContent = "请输入大于或等于 1 的整数年份。";
         yearsThreshold.classList.add("invalid");
         yearsThreshold.focus();
@@ -266,15 +292,14 @@
         legacyValue: legacyValue.value,
         selectedStations: [...stationList.querySelectorAll("input:checked")].map(input => Number(input.value))
       };
-      const activeRules = Number(saved.yearsEnabled) + Number(saved.legacyEnabled && saved.legacyMetric !== "None");
-      document.getElementById("condition-count").textContent = activeRules;
+      const activeRules = updateConditionCount();
       closeFilter();
       showStatus(`筛选条件已保存，启用 ${activeRules} 项规则。`);
     });
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && !veil.hidden) closeFilter();
     });
-    syncControls();
+    setMode(activeMode);
   </script>
 </body>
 </html>
