@@ -23,7 +23,7 @@
     .tabs button:first-child { border-radius: 2px 0 0 2px; }
     .tabs button:last-child { border-radius: 0 2px 2px 0; }
     .tabs .selected { color: #fff; background: #159be8; }
-    .timebar { height: 39px; display: flex; align-items: center; gap: 5px; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .timebar { height: 39px; display: flex; align-items: center; gap: 5px; padding: 0 10px; white-space: nowrap; overflow-x: auto; }
     .timebar strong { margin-right: 6px; color: #57636c; }
     .timebar button { min-width: 58px; height: 30px; border: 1px solid #cbd8e2; color: #65727d; background: #fff; }
     .timebar button.selected { border-color: #148fde; color: #fff; background: #148fde; }
@@ -31,7 +31,8 @@
     .sidebar { width: 300px; flex: 0 0 300px; overflow: auto; background: #fff; border-right: 1px solid #c9d5df; }
     .group-title { height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 14px; border-bottom: 1px solid #159be8; color: #158fcf; font-weight: 700; }
     .group-title .symbol { width: 18px; font-size: 17px; text-align: center; }
-    .side-item { height: 36px; display: flex; align-items: center; padding: 0 38px; color: #75818b; }
+    .side-item { height: 36px; display: flex; align-items: center; padding: 0 38px; color: #75818b; cursor: pointer; }
+    .side-item:focus-visible { outline: 2px solid #149be8; outline-offset: -2px; }
     .side-item.active { color: #168ed0; background: #d8effd; }
     .map-panel { position: relative; flex: 1; min-width: 0; overflow: hidden; background: #cfe2eb url("./assets/zhejiang-map.jpg") center / cover no-repeat; }
     .map-views { position: absolute; top: 12px; left: 14px; display: flex; overflow: hidden; border: 1px solid #148bd0; border-radius: 20px; background: #fff; }
@@ -68,12 +69,21 @@
     .station-section { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; align-items: start; }
     .station-label { padding-top: 7px; color: #58636c; white-space: nowrap; }
     .station-picker { min-width: 0; border: 1px solid #c7d5df; padding: 6px 6px 8px; }
-    .site-heading { min-height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-    .site-select { height: 32px; min-width: 150px; padding: 0 9px; border: 1px solid #d1dbe3; color: #77848d; background: #fff; }
-    .select-all { display: inline-flex; align-items: center; gap: 6px; color: #158fd1; }
-    .station-list { max-height: 220px; overflow: auto; padding: 0 6px 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; column-gap: 10px; row-gap: 12px; }
-    .station { min-width: 0; min-height: 20px; display: flex; align-items: center; gap: 5px; color: #168fd0; white-space: nowrap; }
-    .station input, .select-all input { width: 14px; height: 14px; margin: 0; accent-color: #109de9; }
+    .station-context { margin: 0 0 8px; color: #73808a; font-size: 12px; }
+    .station-search { position: relative; }
+    .station-search input { width: 100%; height: 34px; padding: 0 10px; border: 1px solid #c8d5df; outline: none; color: #45535d; background: #fff; }
+    .station-search input:focus { border-color: #149be8; box-shadow: 0 0 0 2px #149be822; }
+    .station-options { position: absolute; top: calc(100% + 2px); right: 0; left: 0; z-index: 6; max-height: 140px; overflow: auto; border: 1px solid #c7d5df; background: #fff; box-shadow: 0 4px 12px #112a3a22; }
+    .station-options[hidden] { display: none; }
+    .station-option { width: 100%; min-height: 34px; padding: 6px 10px; border: 0; color: #53616a; background: #fff; text-align: left; }
+    .station-option:hover, .station-option:focus { color: #087fbd; background: #e8f5fc; }
+    .station-empty { padding: 10px; color: #89949c; }
+    .station-list { min-height: 110px; max-height: 180px; overflow: auto; padding: 10px 0; display: flex; flex-wrap: wrap; align-content: start; gap: 7px; }
+    .excluded-station { min-height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 3px 7px 3px 9px; border: 1px solid #d5dfe6; color: #586771; background: #f5f8fa; }
+    .excluded-station button { width: 20px; height: 20px; padding: 0; border: 0; color: #74828c; background: transparent; font-size: 18px; line-height: 1; }
+    .excluded-station button:hover { color: #c33; }
+    .station-empty-list { padding: 2px; color: #89949c; font-size: 12px; }
+    .station-summary { border-top: 1px solid #edf0f2; padding-top: 7px; color: #89949c; font-size: 12px; }
     .dialog-footer { min-height: 66px; flex: 0 0 66px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 30px; }
     .dialog-footer button { width: 88px; height: 34px; border: 1px solid #159be8; color: #118cce; background: #fff; }
     .dialog-footer .primary { color: #fff; background: #149be8; }
@@ -112,10 +122,7 @@
       .rule-toggle { margin-top: 7px; }
       .station-section { grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
       .station-label { font-size: 12px; }
-      .site-heading { gap: 8px; }
-      .site-select { width: 130px; min-width: 0; flex: 1; max-width: 150px; }
-      .station-list { max-height: min(190px, 26vh); grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 2px 2px; column-gap: 6px; row-gap: 10px; }
-      .station { font-size: 12px; }
+      .station-list { min-height: 100px; max-height: min(180px, 26vh); }
       .dialog-footer { min-height: 58px; flex-basis: 58px; padding: 0 14px; }
       .legend { gap: 7px; right: 5px; bottom: 5px; padding: 6px; font-size: 10px; }
     }
@@ -156,10 +163,12 @@
           <div class="rule-row"><input class="rule-toggle" id="legacy-enabled" type="checkbox" aria-label="启用原有数值筛选"><span class="rule-copy">当站点要素数值 <select class="metric-select" id="legacy-metric" aria-label="旧规则比较符"><option>None</option><option>&gt;</option><option>≥</option><option>=</option><option>≤</option><option>&lt;</option><option>≠</option></select><input class="number-input" id="legacy-value" type="number" step="any" placeholder="请输入数" aria-label="旧规则数值"><span>时，参与统计和出图</span></span></div>
         </div>
         <div class="station-section">
-          <strong class="station-label" id="station-label">出图站点：</strong>
+          <strong class="station-label" id="station-label">剔除站点：</strong>
           <div class="station-picker" role="group" aria-labelledby="station-label">
-            <div class="site-heading"><select class="site-select" aria-label="站点范围"><option>请选择</option></select><label class="select-all"><input id="select-all" type="checkbox" checked>全选</label></div>
-            <div class="station-list" id="station-list" aria-label="出图站点列表"></div>
+            <div class="station-context" id="station-context"></div>
+            <div class="station-search"><input id="station-search" type="search" placeholder="输入站名或站号搜索" autocomplete="off" aria-label="按站名或站号搜索剔除站点" aria-controls="station-options" aria-expanded="false"><div class="station-options" id="station-options" hidden></div></div>
+            <div class="station-list" id="station-list" aria-label="已剔除站点列表" aria-live="polite"></div>
+            <div class="station-summary" id="station-summary">已剔除 0 个站点</div>
           </div>
         </div>
       </form>
@@ -175,7 +184,9 @@
       ["青田", "58657"], ["嵊州", "58556"], ["武义", "58642"],
       ["诸暨", "58550"], ["兰溪", "58548"], ["柯桥", "58453"]
     ];
-    let saved = { yearsEnabled: true, years: "2", legacyEnabled: false, legacyMetric: "None", legacyValue: "", selectedStations: stations.map((_, i) => i) };
+    let saved = { yearsEnabled: true, years: "2", legacyEnabled: false, legacyMetric: "None", legacyValue: "" };
+    const exclusionsByContext = new Map();
+    let draftExcluded = [];
     const veil = document.getElementById("veil");
     const yearsEnabled = document.getElementById("years-enabled");
     const yearsThreshold = document.getElementById("years-threshold");
@@ -183,20 +194,95 @@
     const legacyEnabled = document.getElementById("legacy-enabled");
     const legacyMetric = document.getElementById("legacy-metric");
     const legacyValue = document.getElementById("legacy-value");
-    const selectAll = document.getElementById("select-all");
+    const stationSearch = document.getElementById("station-search");
+    const stationOptions = document.getElementById("station-options");
     const stationList = document.getElementById("station-list");
     const status = document.getElementById("status");
     const yearRuleRow = document.getElementById("years-rule-row");
     const modeTabs = [...document.querySelectorAll(".tabs button[data-mode]")];
+    const elementItems = [...document.querySelectorAll(".side-item")];
+    const periodButtons = [...document.querySelectorAll(".timebar button")];
     let activeMode = "live";
     let statusTimer;
 
-    stations.forEach(([name, code], index) => {
-      const label = document.createElement("label");
-      label.className = "station";
-      label.innerHTML = `<input type="checkbox" value="${index}" checked><span>${name}（${code}）</span>`;
-      stationList.append(label);
-    });
+    function contextKey() {
+      return JSON.stringify([activeMode, document.querySelector(".side-item.active").textContent, document.querySelector(".timebar .selected").textContent]);
+    }
+
+    function loadStationContext() {
+      draftExcluded = [...(exclusionsByContext.get(contextKey()) || [])];
+      document.getElementById("station-context").textContent = `${document.querySelector(".tabs .selected").textContent} · ${document.querySelector(".side-item.active").textContent} · ${document.querySelector(".timebar .selected").textContent}`;
+      stationSearch.value = "";
+      renderExcludedStations();
+      renderStationOptions();
+    }
+
+    function renderExcludedStations() {
+      stationList.replaceChildren();
+      draftExcluded.forEach(code => {
+        const [name] = stations.find(station => station[1] === code);
+        const item = document.createElement("span");
+        item.className = "excluded-station";
+        const label = document.createElement("span");
+        label.textContent = `${name}（${code}）`;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", `移除剔除站点${name}（${code}）`);
+        remove.addEventListener("click", () => {
+          draftExcluded = draftExcluded.filter(value => value !== code);
+          renderExcludedStations();
+          renderStationOptions();
+        });
+        item.append(label, remove);
+        stationList.append(item);
+      });
+      if (!draftExcluded.length) {
+        const empty = document.createElement("span");
+        empty.className = "station-empty-list";
+        empty.textContent = "暂无剔除站点";
+        stationList.append(empty);
+      }
+      document.getElementById("station-summary").textContent = `已剔除 ${draftExcluded.length} 个站点`;
+    }
+
+    function renderStationOptions() {
+      const query = stationSearch.value.trim().toLowerCase();
+      stationOptions.replaceChildren();
+      stationOptions.hidden = !query;
+      stationSearch.setAttribute("aria-expanded", String(Boolean(query)));
+      if (!query) return;
+      const matches = stations.filter(([name, code]) => !draftExcluded.includes(code) && (name.toLowerCase().includes(query) || code.toLowerCase().includes(query)));
+      matches.forEach(([name, code]) => {
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "station-option";
+        option.textContent = `${name}（${code}）`;
+        option.addEventListener("click", () => {
+          draftExcluded.push(code);
+          stationSearch.value = "";
+          renderExcludedStations();
+          renderStationOptions();
+          stationSearch.focus();
+        });
+        stationOptions.append(option);
+      });
+      if (!matches.length) {
+        const empty = document.createElement("div");
+        empty.className = "station-empty";
+        empty.textContent = "未找到可添加的站点";
+        stationOptions.append(empty);
+      }
+    }
+
+    function selectContextItem(items, current, className) {
+      items.forEach(item => {
+        const selected = item === current;
+        item.classList.toggle(className, selected);
+        item.setAttribute("aria-pressed", String(selected));
+      });
+      loadStationContext();
+    }
 
     function syncControls() {
       const historyMode = activeMode === "history";
@@ -222,6 +308,7 @@
       });
       syncControls();
       updateConditionCount();
+      loadStationContext();
     }
 
     function openFilter() {
@@ -230,8 +317,7 @@
       legacyEnabled.checked = saved.legacyEnabled;
       legacyMetric.value = saved.legacyMetric;
       legacyValue.value = saved.legacyValue;
-      stationList.querySelectorAll("input").forEach((input, index) => input.checked = saved.selectedStations.includes(index));
-      updateSelectAll();
+      loadStationContext();
       yearsError.textContent = "";
       yearsThreshold.classList.remove("invalid");
       syncControls();
@@ -242,13 +328,6 @@
     function closeFilter() {
       veil.hidden = true;
       document.getElementById("open-filter").focus();
-    }
-
-    function updateSelectAll() {
-      const boxes = [...stationList.querySelectorAll("input")];
-      const selected = boxes.filter(input => input.checked).length;
-      selectAll.checked = selected === boxes.length;
-      selectAll.indeterminate = selected > 0 && selected < boxes.length;
     }
 
     function showStatus(message) {
@@ -266,8 +345,37 @@
       yearsError.textContent = "";
       yearsThreshold.classList.remove("invalid");
     });
-    stationList.addEventListener("change", updateSelectAll);
-    selectAll.addEventListener("change", () => stationList.querySelectorAll("input").forEach(input => input.checked = selectAll.checked));
+    stationSearch.addEventListener("input", renderStationOptions);
+    stationSearch.addEventListener("focus", renderStationOptions);
+    stationSearch.addEventListener("keydown", event => {
+      if (event.key === "ArrowDown" && !stationOptions.hidden) {
+        event.preventDefault();
+        stationOptions.querySelector("button")?.focus();
+      }
+      if (event.key === "Enter") event.preventDefault();
+    });
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".station-search")) {
+        stationOptions.hidden = true;
+        stationSearch.setAttribute("aria-expanded", "false");
+      }
+    });
+    elementItems.forEach(item => {
+      item.tabIndex = 0;
+      item.setAttribute("role", "button");
+      item.setAttribute("aria-pressed", String(item.classList.contains("active")));
+      item.addEventListener("click", () => selectContextItem(elementItems, item, "active"));
+      item.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          item.click();
+        }
+      });
+    });
+    periodButtons.forEach(item => {
+      item.setAttribute("aria-pressed", String(item.classList.contains("selected")));
+      item.addEventListener("click", () => selectContextItem(periodButtons, item, "selected"));
+    });
     document.getElementById("open-filter").addEventListener("click", openFilter);
     document.getElementById("close-filter").addEventListener("click", closeFilter);
     document.getElementById("cancel-filter").addEventListener("click", closeFilter);
@@ -289,15 +397,21 @@
         years: yearsThreshold.value,
         legacyEnabled: legacyEnabled.checked,
         legacyMetric: legacyMetric.value,
-        legacyValue: legacyValue.value,
-        selectedStations: [...stationList.querySelectorAll("input:checked")].map(input => Number(input.value))
+        legacyValue: legacyValue.value
       };
+      exclusionsByContext.set(contextKey(), [...draftExcluded]);
       const activeRules = updateConditionCount();
       closeFilter();
-      showStatus(`筛选条件已保存，启用 ${activeRules} 项规则。`);
+      showStatus(`筛选条件已保存，启用 ${activeRules} 项规则，剔除 ${draftExcluded.length} 个站点。`);
     });
     document.addEventListener("keydown", event => {
-      if (event.key === "Escape" && !veil.hidden) closeFilter();
+      if (event.key === "Escape" && !veil.hidden) {
+        if (!stationOptions.hidden) {
+          stationSearch.focus();
+          stationOptions.hidden = true;
+          stationSearch.setAttribute("aria-expanded", "false");
+        } else closeFilter();
+      }
     });
     setMode(activeMode);
   </script>
