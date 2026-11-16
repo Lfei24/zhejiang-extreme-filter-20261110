@@ -206,7 +206,7 @@
     let statusTimer;
 
     function contextKey() {
-      return JSON.stringify([activeMode, document.querySelector(".side-item.active").textContent, document.querySelector(".timebar .selected").textContent]);
+      return JSON.stringify([document.querySelector(".side-item.active").textContent, document.querySelector(".timebar .selected").textContent]);
     }
 
     function loadStationContext() {
