@@ -18,11 +18,13 @@
     .main-nav .selected { border-color: #fff; font-weight: 700; }
     .user-area { white-space: nowrap; color: #eaf7ff; }
     .controlbar { height: 90px; background: #fff; border-bottom: 3px solid #159be8; }
-    .tabs { height: 48px; display: flex; align-items: center; padding: 0 10px; }
-    .tabs button { height: 34px; padding: 0 18px; border: 1px solid #159be8; color: #148bd0; background: #fff; }
-    .tabs button:first-child { border-radius: 2px 0 0 2px; }
-    .tabs button:last-child { border-radius: 0 2px 2px 0; }
-    .tabs .selected { color: #fff; background: #159be8; }
+    .tabs { height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; }
+    .mode-tabs { display: flex; }
+    .mode-tabs button { height: 34px; padding: 0 18px; border: 1px solid #159be8; color: #148bd0; background: #fff; }
+    .mode-tabs button:first-child { border-radius: 2px 0 0 2px; }
+    .mode-tabs button:last-child { border-radius: 0 2px 2px 0; }
+    .mode-tabs .selected { color: #fff; background: #159be8; }
+    .filter-trigger { min-height: 34px; padding: 0 10px; border: 1px solid #118bd1; color: #118bd1; background: #fff; white-space: nowrap; }
     .timebar { height: 39px; display: flex; align-items: center; gap: 5px; padding: 0 10px; white-space: nowrap; overflow-x: auto; }
     .timebar strong { margin-right: 6px; color: #57636c; }
     .timebar button { min-width: 58px; height: 30px; border: 1px solid #cbd8e2; color: #65727d; background: #fff; }
@@ -40,8 +42,7 @@
     .map-views .selected { color: #fff; background: #148bd0; }
     .map-tools { position: absolute; top: 12px; right: 16px; display: flex; gap: 8px; }
     .map-tools button { min-height: 42px; padding: 0 12px; border: 1px solid #c6d6e2; color: #47677d; background: #fff; box-shadow: 0 1px 4px #31566b22; }
-    .map-tools .filter-trigger { border-color: #118bd1; color: #fff; background: #118bd1; }
-    .condition-count { display: inline-grid; width: 20px; height: 20px; margin-left: 5px; place-items: center; border-radius: 50%; color: #1185c9; background: #fff; font-size: 12px; }
+    .condition-count { display: inline-grid; width: 20px; height: 20px; margin-left: 5px; place-items: center; border-radius: 50%; color: #fff; background: #1185c9; font-size: 12px; }
     .legend { position: absolute; right: 14px; bottom: 14px; max-width: calc(100% - 28px); display: flex; flex-wrap: wrap; gap: 7px 15px; align-items: center; padding: 9px 12px; color: #47677d; background: #ffffffdc; }
     .legend i { width: 10px; height: 10px; margin-right: 5px; display: inline-block; border-radius: 50%; background: #155572; }
     .legend span:nth-child(2) i { background: #d63737; }
@@ -96,7 +97,7 @@
       .main-nav { justify-content: flex-start; overflow: hidden; gap: 14px; }
       .user-area { display: none; }
       .sidebar { width: 220px; flex-basis: 220px; }
-      .map-tools button:not(.filter-trigger) { display: none; }
+      .map-tools button { display: none; }
       .dialog-body { padding: 16px 18px 12px; }
     }
     @media (max-width: 600px) {
@@ -106,14 +107,16 @@
       .brand-mark { display: none; }
       .main-nav span:nth-child(n+3) { display: none; }
       .controlbar { height: 80px; }
-      .tabs { height: 42px; }
+      .tabs { height: 42px; padding: 0 8px; }
+      .mode-tabs button { padding: 0 10px; }
+      .filter-trigger { padding: 0 8px; font-size: 13px; }
+      .condition-count { width: 18px; height: 18px; font-size: 11px; }
       .timebar { height: 35px; }
       .timebar button { min-width: 48px; }
       .workspace { height: calc(100vh - 142px); min-height: 380px; }
       .sidebar { width: 126px; flex-basis: 126px; }
       .side-item { padding: 0 12px; font-size: 12px; }
       .map-tools { top: 8px; right: 8px; }
-      .map-tools .filter-trigger { padding: 0 8px; }
       .map-views { top: 8px; left: 8px; }
       .map-views span { padding: 7px 9px; font-size: 12px; }
       .dialog-header { height: 46px; flex-basis: 46px; }
@@ -135,7 +138,7 @@
     <div class="user-area">◉ 管理员</div>
   </header>
   <section class="controlbar" aria-label="统计条件">
-    <div class="tabs"><button class="selected" type="button" data-mode="live" aria-pressed="true">实况评估</button><button type="button" data-mode="history" aria-pressed="false">历史统计</button></div>
+    <div class="tabs"><div class="mode-tabs"><button class="selected" type="button" data-mode="live" aria-pressed="true">实况评估</button><button type="button" data-mode="history" aria-pressed="false">历史统计</button></div><button class="filter-trigger" id="open-filter" type="button" aria-haspopup="dialog" aria-controls="veil">自定义条件筛选 <span class="condition-count" id="condition-count">0</span></button></div>
     <div class="timebar"><strong>时间选择：</strong><button class="selected" type="button">全年</button><button type="button">1月</button><button type="button">2月</button><button type="button">3月</button><button type="button">4月</button><button type="button">5月</button><button type="button">6月</button><button type="button">7月</button><button type="button">8月</button><button type="button">9月</button><button type="button">10月</button><button type="button">11月</button><button type="button">12月</button></div>
   </section>
   <main class="workspace">
@@ -147,11 +150,11 @@
     </aside>
     <section class="map-panel" aria-label="统计地图">
       <div class="map-views"><span class="selected">空间分布</span><span>统计图表</span></div>
-      <div class="map-tools"><button class="filter-trigger" id="open-filter" type="button">条件筛选 <span class="condition-count" id="condition-count">0</span></button><button type="button" aria-label="下载图片">⇩ 下载图片</button><button type="button" aria-label="地图复位">⟳ 地图复位</button></div>
+      <div class="map-tools"><button type="button" aria-label="下载图片">⇩ 下载图片</button><button type="button" aria-label="地图复位">⟳ 地图复位</button></div>
       <div class="legend"><span><i></i>监测站点</span><span><i></i>超历史极值站点</span><span><i></i>超历史同期极值站点</span></div>
     </section>
   </main>
-  <div class="veil" id="veil">
+  <div class="veil" id="veil" hidden>
     <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
       <header class="dialog-header"><h1 id="dialog-title">条件筛选</h1><button class="icon-button" id="close-filter" type="button" aria-label="关闭">×</button></header>
       <form id="filter-form" class="dialog-body" novalidate>
