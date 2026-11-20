@@ -18,17 +18,21 @@
     .main-nav .selected { border-color: #fff; font-weight: 700; }
     .user-area { white-space: nowrap; color: #eaf7ff; }
     .controlbar { height: 90px; background: #fff; border-bottom: 3px solid #159be8; }
-    .tabs { height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; }
+    .tabs { height: 48px; display: flex; align-items: center; padding: 0 10px; }
     .mode-tabs { display: flex; }
     .mode-tabs button { height: 34px; padding: 0 18px; border: 1px solid #159be8; color: #148bd0; background: #fff; }
     .mode-tabs button:first-child { border-radius: 2px 0 0 2px; }
     .mode-tabs button:last-child { border-radius: 0 2px 2px 0; }
     .mode-tabs .selected { color: #fff; background: #159be8; }
-    .filter-trigger { min-height: 34px; padding: 0 10px; border: 1px solid #118bd1; color: #118bd1; background: #fff; white-space: nowrap; }
-    .timebar { height: 39px; display: flex; align-items: center; gap: 5px; padding: 0 10px; white-space: nowrap; overflow-x: auto; }
-    .timebar strong { margin-right: 6px; color: #57636c; }
-    .timebar button { min-width: 58px; height: 30px; border: 1px solid #cbd8e2; color: #65727d; background: #fff; }
-    .timebar button.selected { border-color: #148fde; color: #fff; background: #148fde; }
+    .timebar { height: 39px; display: flex; align-items: center; gap: 8px; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .time-selection { min-width: 0; flex: 0 1 auto; display: flex; align-items: center; gap: 5px; overflow: hidden; }
+    .time-selection strong { flex: 0 0 auto; margin-right: 6px; color: #57636c; }
+    .period-options { min-width: 0; display: flex; align-items: center; gap: 5px; overflow-x: auto; }
+    .period-options button { min-width: 58px; height: 30px; border: 1px solid #cbd8e2; color: #65727d; background: #fff; }
+    .period-options button.selected { border-color: #148fde; color: #fff; background: #148fde; }
+    .time-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .filter-trigger { height: 30px; padding: 0 8px; border: 1px solid #118bd1; color: #118bd1; background: #fff; white-space: nowrap; }
+    .query-button { height: 30px; padding: 0 16px; border: 1px solid #148fde; color: #fff; background: #148fde; }
     .workspace { display: flex; height: calc(100vh - 170px); min-height: 440px; }
     .sidebar { width: 300px; flex: 0 0 300px; overflow: auto; background: #fff; border-right: 1px solid #c9d5df; }
     .group-title { height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 14px; border-bottom: 1px solid #159be8; color: #158fcf; font-weight: 700; }
@@ -106,14 +110,17 @@
       .brand { font-size: 16px; }
       .brand-mark { display: none; }
       .main-nav span:nth-child(n+3) { display: none; }
-      .controlbar { height: 80px; }
+      .controlbar { height: 112px; }
       .tabs { height: 42px; padding: 0 8px; }
       .mode-tabs button { padding: 0 10px; }
       .filter-trigger { padding: 0 8px; font-size: 13px; }
       .condition-count { width: 18px; height: 18px; font-size: 11px; }
-      .timebar { height: 35px; }
-      .timebar button { min-width: 48px; }
-      .workspace { height: calc(100vh - 142px); min-height: 380px; }
+      .timebar { height: 67px; display: grid; grid-template-rows: 32px 32px; align-content: center; row-gap: 3px; padding: 0 8px; }
+      .time-selection { height: 32px; }
+      .period-options button { min-width: 48px; }
+      .time-actions { height: 32px; justify-content: flex-end; }
+      .filter-trigger, .query-button { height: 28px; }
+      .workspace { height: calc(100vh - 174px); min-height: 380px; }
       .sidebar { width: 126px; flex-basis: 126px; }
       .side-item { padding: 0 12px; font-size: 12px; }
       .map-tools { top: 8px; right: 8px; }
@@ -138,8 +145,8 @@
     <div class="user-area">◉ 管理员</div>
   </header>
   <section class="controlbar" aria-label="统计条件">
-    <div class="tabs"><div class="mode-tabs"><button class="selected" type="button" data-mode="live" aria-pressed="true">实况评估</button><button type="button" data-mode="history" aria-pressed="false">历史统计</button></div><button class="filter-trigger" id="open-filter" type="button" aria-haspopup="dialog" aria-controls="veil">自定义条件筛选 <span class="condition-count" id="condition-count">0</span></button></div>
-    <div class="timebar"><strong>时间选择：</strong><button class="selected" type="button">全年</button><button type="button">1月</button><button type="button">2月</button><button type="button">3月</button><button type="button">4月</button><button type="button">5月</button><button type="button">6月</button><button type="button">7月</button><button type="button">8月</button><button type="button">9月</button><button type="button">10月</button><button type="button">11月</button><button type="button">12月</button></div>
+    <div class="tabs"><div class="mode-tabs"><button class="selected" type="button" data-mode="live" aria-pressed="true">实况评估</button><button type="button" data-mode="history" aria-pressed="false">历史统计</button></div></div>
+    <div class="timebar"><div class="time-selection"><strong>时间选择：</strong><div class="period-options"><button class="selected" type="button">全年</button><button type="button">1月</button><button type="button">2月</button><button type="button">3月</button><button type="button">4月</button><button type="button">5月</button><button type="button">6月</button><button type="button">7月</button><button type="button">8月</button><button type="button">9月</button><button type="button">10月</button><button type="button">11月</button><button type="button">12月</button></div></div><div class="time-actions"><button class="filter-trigger" id="open-filter" type="button" aria-haspopup="dialog" aria-controls="veil">自定义条件筛选 <span class="condition-count" id="condition-count">0</span></button><button class="query-button" id="query-button" type="button">查询</button></div></div>
   </section>
   <main class="workspace">
     <aside class="sidebar" aria-label="统计要素">
@@ -204,7 +211,7 @@
     const yearRuleRow = document.getElementById("years-rule-row");
     const modeTabs = [...document.querySelectorAll(".tabs button[data-mode]")];
     const elementItems = [...document.querySelectorAll(".side-item")];
-    const periodButtons = [...document.querySelectorAll(".timebar button")];
+    const periodButtons = [...document.querySelectorAll(".period-options button")];
     let activeMode = "live";
     let statusTimer;
 
@@ -380,6 +387,13 @@
       item.addEventListener("click", () => selectContextItem(periodButtons, item, "selected"));
     });
     document.getElementById("open-filter").addEventListener("click", openFilter);
+    document.getElementById("query-button").addEventListener("click", () => {
+      const excluded = exclusionsByContext.get(contextKey()) || [];
+      const mode = document.querySelector(".tabs .selected").textContent;
+      const element = document.querySelector(".side-item.active").textContent;
+      const period = document.querySelector(".timebar .selected").textContent;
+      showStatus(`已提交查询：${mode} · ${element} · ${period}，启用 ${updateConditionCount()} 项筛选，剔除 ${excluded.length} 个站点。`);
+    });
     document.getElementById("close-filter").addEventListener("click", closeFilter);
     document.getElementById("cancel-filter").addEventListener("click", closeFilter);
     document.getElementById("save-filter").addEventListener("click", () => {
